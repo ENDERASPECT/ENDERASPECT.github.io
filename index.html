@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EnderAspect - Crypto Donations</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <header class="hero-section">
+        <div class="container">
+            <h1 class="creator-name">EnderAspect</h1>
+            <p class="tagline">Supporting quality Minecraft content through crypto</p>
+            <button id="connectWalletBtn" class="btn btn-primary">Connect Wallet</button>
+            <div id="walletInfo" class="wallet-info" style="display: none;">
+                <p>Connected: <span id="walletAddress"></span></p>
+                <p>Network: <span id="networkName"></span></p>
+            </div>
+            <div id="error-message" class="error-message" style="display: none;"></div>
+        </div>
+    </header>
+
+    <main>
+        <section id="about" class="about-section">
+            <div class="container">
+                <img src="https://via.placeholder.com/150" alt="EnderAspect Profile" class="profile-image">
+                <h2>About EnderAspect</h2>
+                <p>Welcome! I'm EnderAspect, a Minecraft content creator focused on high-quality builds, in-depth tutorials, complex redstone contraptions, and exploring the latest mods. Your support helps me dedicate more time to creating the content you love.</p>
+                <p>Crypto donations provide a direct and low-fee way to support the channel. Thank you for being a part of this community!</p>
+            </div>
+        </section>
+
+        <section id="donate" class="donation-interface">
+            <div class="container">
+                <h2>Make a Donation</h2>
+                <div class="donation-form">
+                    <div class="amount-selection">
+                        <button class="btn amount-btn" data-amount="5">$5</button>
+                        <button class="btn amount-btn" data-amount="15">$15</button>
+                        <button class="btn amount-btn" data-amount="30">$30</button>
+                        <button class="btn amount-btn" data-amount="50">$50</button>
+                        <button class="btn amount-btn" data-amount="100">$100</button>
+                        <input type="number" id="customAmount" placeholder="Custom Amount (USD)" min="5" max="500">
+                    </div>
+                    <div class="token-selection">
+                        <label for="tokenSelect">Select Token:</label>
+                        <select id="tokenSelect">
+                            <option value="ETH">ETH (Popular Choice)</option>
+                            <option value="USDC">USDC (Stable Value ✓)</option>
+                            <option value="USDT">USDT (Stable Value ✓)</option>
+                            <option value="DAI">DAI (Stable Value ✓)</option>
+                            <option value="WBTC">WBTC (Altcoin Option)</option>
+                            <option value="LINK">LINK (Altcoin Option)</option>
+                            <option value="UNI">UNI (Altcoin Option)</option>
+                        </select>
+                    </div>
+                    <div class="price-display">
+                        <p>Your Balance: <span id="tokenBalance">N/A</span></p>
+                        <p>Current Price: <span id="tokenPrice">N/A</span></p>
+                        <p>Estimated Gas: <span id="gasEstimate">N/A</span></p>
+                    </div>
+                    <button id="donateBtn" class="btn btn-primary" disabled>Donate</button>
+                </div>
+                <div id="transaction-status" style="display: none;">
+                    <p id="status-message"></p>
+                    <a id="tx-link" href="#" target="_blank" rel="noopener noreferrer">View on Etherscan</a>
+                </div>
+            </div>
+        </section>
+
+        <section id="tiers" class="tier-benefits">
+            <div class="container">
+                <h2>Supporter Tiers</h2>
+                <div class="tier-cards">
+                    <div class="tier-card"><h3>Initiate ($5)</h3><p>Thank you message on stream, supporter-only Discord channel access.</p></div>
+                    <div class="tier-card"><h3>Cipher ($15)</h3><p>All Initiate benefits, behind-the-scenes content, monthly exclusive screenshots.</p></div>
+                    <div class="tier-card"><h3>Nexus ($30)</h3><p>All Cipher benefits, 24-hour early video access, world download access for select builds.</p></div>
+                    <div class="tier-card"><h3>Quantum ($50)</h3><p>All Nexus benefits, monthly private Q&A, custom build requests consideration.</p></div>
+                    <div class="tier-card"><h3>Apex ($100+)</h3><p>All Quantum benefits, one-on-one Discord chat, server tour opportunities, name in video credits.</p></div>
+                </div>
+                <div class="progress-bar-container">
+                    <p>Your Current Tier: <span id="currentTier">None</span></p>
+                    <div class="progress-bar">
+                        <div id="tierProgress" class="progress"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="verification" class="verification-process">
+            <div class="container">
+                <h2>Claim Your Benefits</h2>
+                <p>To claim your tier benefits, please follow these steps:</p>
+                <ol>
+                    <li>Join the official <a href="#">EnderAspect Discord Server</a>.</li>
+                    <li>Go to the `#claim-roles` channel.</li>
+                    <li>Send a message with the transaction hash of your donation.</li>
+                    <li>A moderator will verify your donation and grant you the appropriate role.</li>
+                </ol>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="social-links">
+                <a href="#">YouTube</a> | <a href="#">Twitter</a> | <a href="#">Discord</a>
+            </div>
+            <p>Creator Wallet: <span id="creatorWallet">0x05b2414bC97a0e879279E53Ca332526ECdB3785D</span> <button id="copyWallet">Copy</button></p>
+            <p>&copy; 2025 EnderAspect. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.7.4/web3.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,229 @@
+:root {
+    --primary-color: #2D1B69;
+    --secondary-color: #00F5FF;
+    --accent-color: #FFD700;
+    --background-color: #0A0A0F;
+    --text-color: #FFFFFF;
+    --light-gray: #CCCCCC;
+    --error-color: #ff4d4d;
+}
+
+body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+}
+
+.btn-primary {
+    background-color: var(--secondary-color);
+    color: var(--background-color);
+    font-weight: bold;
+}
+
+.btn-primary:hover {
+    background-color: var(--accent-color);
+}
+
+.btn:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+}
+
+/* Header & Hero Section */
+.hero-section {
+    text-align: center;
+    padding: 100px 0;
+    background: linear-gradient(45deg, var(--primary-color), #1a0f3b);
+}
+
+.creator-name {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--secondary-color);
+    animation: glow 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+    from {
+        text-shadow: 0 0 10px var(--secondary-color);
+    }
+    to {
+        text-shadow: 0 0 20px var(--secondary-color), 0 0 30px var(--secondary-color);
+    }
+}
+
+.tagline {
+    font-size: 1.2rem;
+    color: var(--light-gray);
+    margin-bottom: 30px;
+}
+
+.wallet-info p {
+    margin: 5px 0;
+}
+
+.error-message {
+    color: var(--error-color);
+    margin-top: 15px;
+}
+
+/* About Section */
+.about-section {
+    padding: 60px 0;
+    text-align: center;
+}
+
+.profile-image {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    border: 3px solid var(--secondary-color);
+    margin-bottom: 20px;
+}
+
+/* Donation Interface */
+.donation-interface {
+    padding: 60px 0;
+    background-color: #12121a;
+}
+
+.donation-form {
+    max-width: 600px;
+    margin: 0 auto;
+    display: grid;
+    gap: 20px;
+}
+
+.amount-selection {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.amount-selection .amount-btn.selected {
+    background-color: var(--accent-color);
+    color: var(--background-color);
+}
+
+#customAmount {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid var(--primary-color);
+    background-color: var(--background-color);
+    color: var(--text-color);
+    width: 100%;
+}
+
+.token-selection select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    border: 1px solid var(--primary-color);
+}
+
+.price-display p {
+    margin: 5px 0;
+}
+
+#transaction-status {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: var(--primary-color);
+    border-radius: 5px;
+}
+
+/* Tier Benefits */
+.tier-benefits {
+    padding: 60px 0;
+}
+
+.tier-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.tier-card {
+    background-color: var(--primary-color);
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid var(--secondary-color);
+}
+
+.progress-bar-container {
+    background-color: #1e1e2f;
+    border-radius: 10px;
+    padding: 20px;
+}
+
+.progress-bar {
+    width: 100%;
+    background-color: #333;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.progress {
+    width: 0%;
+    height: 20px;
+    background-color: var(--accent-color);
+    transition: width 0.5s ease;
+}
+
+/* Verification & Footer */
+.verification-process, .footer {
+    padding: 40px 0;
+    text-align: center;
+}
+
+.verification-process a {
+    color: var(--secondary-color);
+}
+
+.footer {
+    background-color: #12121a;
+}
+
+.social-links a {
+    color: var(--light-gray);
+    margin: 0 10px;
+    text-decoration: none;
+}
+
+#copyWallet {
+    background: none;
+    border: 1px solid var(--secondary-color);
+    color: var(--secondary-color);
+    margin-left: 10px;
+    cursor: pointer;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .creator-name {
+        font-size: 2.5rem;
+    }
+    .amount-selection {
+        justify-content: center;
+    }
+}
