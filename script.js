@@ -241,14 +241,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         async _getDecimals(contract) {
-            // Standard ERC20, but some tokens might not have it.
             try {
                 return await contract.methods.decimals().call();
             } catch (e) {
-                // Common stablecoins have 6 or 18
-                const name = await contract.methods.name().call();
-                if (name.includes('USDC')) return 6;
-                return 18;
+                // Fallback for tokens that might not have a decimals function
+                try {
+                    const name = await contract.methods.name().call();
+                    if (name.includes('USDC') || name.includes('USDT')) {
+                        return 6;
+                    }
+                    return 18; // Default to 18 for others like DAI
+                } catch (nameError) {
+                    return 18; // Ultimate fallback
+                }
             }
         }
     }
@@ -260,6 +265,50 @@ document.addEventListener('DOMContentLoaded', () => {
             this.chainId = chainId;
             this.ui = ui;
             this.priceTracker = new PriceTracker();
+            this.tokenHandler = new TokenHandler(web3, account, chainId);
+        }
+
+        async estimateGas(amountUSD, token) {
+            try {
+                const gasPrice = await this.web3.eth.getGasPrice();
+                let gasAmount;
+
+                if (token === 'ETH') {
+                    const ethPrice = await this.priceTracker.getPrice('ethereum');
+                    if (!ethPrice) return 'N/A';
+                    const amountETH = (amountUSD / ethPrice);
+                    const amountWei = this.web3.utils.toWei(amountETH.toString(), 'ether');
+                    gasAmount = await this.web3.eth.estimateGas({
+                        from: this.account,
+                        to: CONFIG.creatorWallet,
+                        value: amountWei
+                    });
+                } else {
+                    const contractAddress = this.tokenHandler.getContractAddress(token);
+                    if (!contractAddress) return 'N/A';
+                    const contract = new this.web3.eth.Contract(CONFIG.erc20Abi, contractAddress);
+                    const decimals = await this.tokenHandler._getDecimals(contract);
+                    const isStablecoin = ['USDC', 'USDT', 'DAI'].includes(token);
+                    let amountToken;
+
+                    if (isStablecoin) {
+                        amountToken = BigInt(amountUSD) * BigInt(10 ** decimals);
+                    } else {
+                        const tokenPrice = await this.priceTracker.getPrice(CONFIG.tokens[token].coingeckoId);
+                        if (!tokenPrice) return 'N/A';
+                        const tokenValue = (amountUSD / tokenPrice) * (10 ** decimals);
+                        amountToken = BigInt(Math.floor(tokenValue));
+                    }
+                    gasAmount = await contract.methods.transfer(CONFIG.creatorWallet, amountToken.toString()).estimateGas({ from: this.account });
+                }
+                
+                const gasCost = this.web3.utils.fromWei((BigInt(gasAmount) * BigInt(gasPrice)).toString(), 'ether');
+                return `${parseFloat(gasCost).toFixed(6)} ETH`;
+
+            } catch (error) {
+                console.error("Gas estimation error:", error);
+                return "Error";
+            }
         }
 
         async processDonation(amountUSD, token) {
@@ -267,14 +316,13 @@ document.addEventListener('DOMContentLoaded', () => {
             this.ui.showTransactionStatus('Processing donation...');
 
             try {
-                const isStablecoin = ['USDC', 'USDT', 'DAI'].includes(token);
-                
                 if (token === 'ETH') {
                     await this.handleEthDonation(amountUSD);
                 } else {
-                    await this.handleErc20Donation(amountUSD, token, isStablecoin);
+                    await this.handleErc20Donation(amountUSD, token);
                 }
             } catch (error) {
+                console.error(error);
                 this.ui.showTransactionStatus(`Error: ${error.message}`);
             } finally {
                 this.ui.donateBtn.disabled = false;
@@ -287,8 +335,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.ui.showTransactionStatus('Error: Could not fetch ETH price.');
                 return;
             }
-            const amountETH = (amountUSD / ethPrice).toFixed(18);
-            const amountWei = this.web3.utils.toWei(amountETH, 'ether');
+            const amountETH = (amountUSD / ethPrice);
+            const amountWei = this.web3.utils.toWei(amountETH.toString(), 'ether');
 
             this.ui.showTransactionStatus('Please confirm the transaction in your wallet.');
             const tx = await this.web3.eth.sendTransaction({
@@ -300,18 +348,19 @@ document.addEventListener('DOMContentLoaded', () => {
             this.onSuccess(tx.transactionHash, amountUSD);
         }
 
-        async handleErc20Donation(amountUSD, token, isStablecoin) {
-            const contractAddress = CONFIG.tokens[token][this.chainId];
+        async handleErc20Donation(amountUSD, token) {
+            const contractAddress = this.tokenHandler.getContractAddress(token);
             if (!contractAddress) {
                 this.ui.showTransactionStatus('Error: Token not supported on this network.');
                 return;
             }
             const contract = new this.web3.eth.Contract(CONFIG.erc20Abi, contractAddress);
-            const decimals = await new TokenHandler(this.web3)._getDecimals(contract);
+            const decimals = await this.tokenHandler._getDecimals(contract);
+            const isStablecoin = ['USDC', 'USDT', 'DAI'].includes(token);
             
             let amountToken;
             if (isStablecoin) {
-                amountToken = (amountUSD * (10 ** decimals)).toString();
+                amountToken = BigInt(amountUSD) * BigInt(10 ** decimals);
             } else {
                 const tokenPrice = await this.priceTracker.getPrice(CONFIG.tokens[token].coingeckoId);
                 if (!tokenPrice) {
@@ -319,18 +368,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
                 const tokenValue = (amountUSD / tokenPrice) * (10 ** decimals);
-                amountToken = Math.floor(tokenValue).toString();
+                amountToken = BigInt(Math.floor(tokenValue));
             }
 
-            // Check allowance and approve if necessary
-            const allowance = await contract.methods.allowance(this.account, CONFIG.creatorWallet).call();
-            if (BigInt(allowance) < BigInt(amountToken)) {
-                this.ui.showTransactionStatus('Approval needed. Please confirm in your wallet.');
-                await contract.methods.approve(CONFIG.creatorWallet, amountToken).send({ from: this.account });
-            }
-
-            this.ui.showTransactionStatus('Approval successful. Processing transfer...');
-            const tx = await contract.methods.transfer(CONFIG.creatorWallet, amountToken).send({ from: this.account });
+            this.ui.showTransactionStatus('Please confirm the transaction in your wallet.');
+            const tx = await contract.methods.transfer(CONFIG.creatorWallet, amountToken.toString()).send({ from: this.account });
             
             this.onSuccess(tx.transactionHash, amountUSD);
         }
@@ -339,7 +381,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const explorerUrl = CONFIG.supportedNetworks[this.chainId].explorer;
             this.ui.showTransactionStatus('Donation successful! Thank you!', txHash, explorerUrl);
             
-            // Update local storage for tier tracking
             let totalDonated = parseFloat(localStorage.getItem('totalDonated') || '0');
             totalDonated += parseFloat(amountUSD);
             localStorage.setItem('totalDonated', totalDonated);
@@ -422,6 +463,15 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 const price = await this.priceTracker.getPrice(CONFIG.tokens[this.selectedToken].coingeckoId);
                 this.ui.tokenPrice.textContent = price ? `$${price.toFixed(2)} USD` : 'N/A';
+            }
+
+            // Update gas estimate
+            if (this.donationHandler && this.selectedAmount > 0) {
+                this.ui.gasEstimate.textContent = 'Estimating...';
+                const gas = await this.donationHandler.estimateGas(this.selectedAmount, this.selectedToken);
+                this.ui.gasEstimate.textContent = gas;
+            } else {
+                this.ui.gasEstimate.textContent = 'N/A';
             }
         }
 
