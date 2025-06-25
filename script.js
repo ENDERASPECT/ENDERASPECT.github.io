@@ -1,5 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // --- EDIT YOUR WALLET ADDRESS HERE ---
     const walletAddress = '0x05b2414bC97a0e879279E53Ca332526ECdB3785D';
+    // --- END OF WALLET ADDRESS ---
 
     // --- QR Code Generation ---
     const qrCodeElement = document.getElementById('qr-code');
